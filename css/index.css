@@ -225,6 +225,7 @@
 .alert.show {
     opacity: 1;
     transform: translateY(0);
+    text-align: center;
 }
 
 .alert.hide {
