@@ -16,7 +16,7 @@ function showAlert(message, type) {
             oldestAlert.remove();
             // 从数组中删除
             alertGroups[type] = group.filter(item => item !== oldestAlert);
-        }, 300); // 等待淡出动画完成
+        }, 0); // 等待淡出动画完成
     }
 
     // 2. 创建新弹窗
@@ -43,9 +43,8 @@ function showAlert(message, type) {
     }, 10);
 
     // 6. 3秒后自动消失
-    const hideDelay = 3000;
+    const hideDelay = 2000;
     const leaveAnimDuration = 300;
-
     alert.hideTimer = setTimeout(() => {
         alert.classList.remove('show');
         alert.classList.add('hide');
