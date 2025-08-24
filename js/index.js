@@ -1,19 +1,66 @@
-// 基础URL - 根据实际部署情况可能需要调整
-const BASE_URL = 'https://api-iot.datao2233.top'; // 如果与Worker同一域名，可以留空
+// 分类型存储弹窗（各最多2个）
+const alertLimits = { success: 2, error: 2 }; // 绿色/红色各最多2个
+const alertGroups = { success: [], error: [] }; // 存储对应类型弹窗
 
-// 显示提示信息
 function showAlert(message, type) {
-    const alert = document.getElementById(type + 'Alert');
+    const group = alertGroups[type];
+    const limit = alertLimits[type];
+
+    // 1. 如果已达上限，移除最早的弹窗
+    if (group.length >= limit) {
+        const oldestAlert = group[0];
+        // 手动触发旧弹窗消失（不等待自动消失）
+        oldestAlert.classList.remove('show');
+        oldestAlert.classList.add('hide');
+        setTimeout(() => {
+            oldestAlert.remove();
+            // 从数组中删除
+            alertGroups[type] = group.filter(item => item !== oldestAlert);
+        }, 300); // 等待淡出动画完成
+    }
+
+    // 2. 创建新弹窗
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
     alert.textContent = message;
-    alert.style.display = 'block';
-    
-    // 5秒后自动隐藏
+    alert.dataset.type = type;
+
+    // 3. 找/创建容器
+    let container = document.querySelector('.alert-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'alert-container';
+        document.body.appendChild(container);
+    }
+
+    // 4. 加到容器顶部（新弹窗在上）
+    container.insertBefore(alert, container.firstChild);
+    group.unshift(alert); // 加到数组开头（保持最新的在最前）
+
+    // 5. 触发淡入动画
     setTimeout(() => {
-        alert.style.display = 'none';
-    }, 5000);
+        alert.classList.add('show');
+    }, 10);
+
+    // 6. 3秒后自动消失
+    const hideDelay = 3000;
+    const leaveAnimDuration = 300;
+
+    alert.hideTimer = setTimeout(() => {
+        alert.classList.remove('show');
+        alert.classList.add('hide');
+
+        setTimeout(() => {
+            alert.remove();
+            // 从数组中删除
+            alertGroups[type] = group.filter(item => item !== alert);
+        }, leaveAnimDuration);
+    }, hideDelay);
 }
 
-// 更新连接状态显示
+// 以下是原有设备控制功能（未修改）
+const BASE_URL = 'https://api-iot.datao2233.top';
+
 function updateConnectionStatus(online) {
     const connectionIndicator = document.getElementById('connectionIndicator');
     const connectionText = document.getElementById('connectionText');
@@ -29,7 +76,6 @@ function updateConnectionStatus(online) {
     }
 }
 
-// 获取设备状态
 async function getStatus() {
     const statusBtn = document.querySelector('.btn-primary');
     const originalText = statusBtn.innerHTML;
@@ -45,25 +91,18 @@ async function getStatus() {
             const onlineStatus = document.getElementById('onlineStatus');
             const powerStatus = document.getElementById('powerStatus');
             
-            // 更新在线状态
             onlineStatus.textContent = data.online ? '在线' : '离线';
             onlineStatus.className = data.online ? 'status-value online' : 'status-value offline';
             
-            // 根据API响应格式更新电源状态
-            // 注意：power字段是字符串"on"或"off"，不是布尔值
             if (!data.online) {
-                // 设备离线时，电源状态显示为未知
                 powerStatus.textContent = '未知';
                 powerStatus.className = 'status-value unknown';
             } else {
-                // 设备在线时，显示实际的电源状态
                 powerStatus.textContent = data.power === 'on' ? '开启' : '关闭';
                 powerStatus.className = data.power === 'on' ? 'status-value on' : 'status-value off';
             }
             
-            // 更新连接状态显示
             updateConnectionStatus(data.online);
-            
             document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
             
             showAlert('状态更新成功', 'success');
@@ -73,12 +112,8 @@ async function getStatus() {
     } catch (error) {
         console.error('获取状态失败:', error);
         showAlert('获取状态失败: ' + error.message, 'error');
-        
-        // 出错时设置状态为未知
         document.getElementById('powerStatus').textContent = '未知';
         document.getElementById('powerStatus').className = 'status-value unknown';
-        
-        // 出错时显示无法连接设备
         updateConnectionStatus(false);
     } finally {
         statusBtn.innerHTML = originalText;
@@ -86,7 +121,6 @@ async function getStatus() {
     }
 }
 
-// 控制设备
 async function controlDevice(action) {
     const key = document.getElementById('keyInput').value;
     if (!key) {
@@ -99,15 +133,12 @@ async function controlDevice(action) {
         buttons = document.querySelectorAll('.controls button');
         buttons.forEach(btn => btn.disabled = true);
         
-        // 将密码转换为MD5
         const md5Key = md5(key);
-        
         const response = await fetch(`${BASE_URL}/?action=${action}&key=${encodeURIComponent(md5Key)}`);
         const data = await response.json();
         
         if (data.msg === 'OK') {
             showAlert(`操作执行成功: ${getActionName(action)}`, 'success');
-            // 更新状态
             setTimeout(getStatus, 3000);
         } else {
             throw new Error(data.msg || '操作执行失败');
@@ -122,7 +153,6 @@ async function controlDevice(action) {
     }
 }
 
-// 获取操作名称
 function getActionName(action) {
     const actions = {
         'on': '开启设备',
@@ -133,7 +163,6 @@ function getActionName(action) {
     return actions[action] || action;
 }
 
-// 页面加载时获取初始状态
 window.onload = function() {
     getStatus();
 };
