@@ -1,19 +1,57 @@
+/**
+ * IoT设备控制台JavaScript功能
+ * 包含设备状态获取、设备控制和弹窗动画功能
+ * 每个弹窗都有独立的动画控制，互不干扰
+ */
+
 // 基础URL - 根据实际部署情况可能需要调整
 const BASE_URL = 'https://api-iot.datao2233.top'; // 如果与Worker同一域名，可以留空
 
-// 显示提示信息
+/**
+ * 显示提示信息 - 独立弹窗版本
+ * 每个弹窗都有独立的定时器，互不干扰
+ * @param {string} message - 要显示的消息内容
+ * @param {string} type - 弹窗类型 ('success' 或 'error')
+ */
 function showAlert(message, type) {
     const alert = document.getElementById(type + 'Alert');
-    alert.textContent = message;
-    alert.style.display = 'block';
     
-    // 5秒后自动隐藏
-    setTimeout(() => {
-        alert.style.display = 'none';
-    }, 5000);
+    // 先停止所有正在进行的动画
+    alert.classList.remove('show', 'hide');
+    
+    // 设置消息内容
+    alert.textContent = message;
+    
+    // 强制重排以触发动画
+    void alert.offsetWidth;
+    
+    // 显示并添加动画类
+    alert.style.display = 'block';
+    alert.classList.add('show');
+    
+    // 为当前弹窗设置独立的定时器
+    if (alert.timeoutId) {
+        clearTimeout(alert.timeoutId);
+    }
+    
+    // 5秒后自动隐藏当前弹窗
+    alert.timeoutId = setTimeout(() => {
+        alert.classList.remove('show');
+        alert.classList.add('hide');
+        
+        // 动画完成后完全隐藏当前弹窗
+        setTimeout(() => {
+            alert.style.display = 'none';
+            alert.classList.remove('hide');
+            alert.timeoutId = null;
+        }, 500);
+    }, 4500);
 }
 
-// 更新连接状态显示
+/**
+ * 更新连接状态显示
+ * @param {boolean} online - 设备是否在线
+ */
 function updateConnectionStatus(online) {
     const connectionIndicator = document.getElementById('connectionIndicator');
     const connectionText = document.getElementById('connectionText');
@@ -29,7 +67,10 @@ function updateConnectionStatus(online) {
     }
 }
 
-// 获取设备状态
+/**
+ * 获取设备状态
+ * 从API获取设备状态并更新界面显示
+ */
 async function getStatus() {
     const statusBtn = document.querySelector('.btn-primary');
     const originalText = statusBtn.innerHTML;
@@ -86,7 +127,11 @@ async function getStatus() {
     }
 }
 
-// 控制设备
+/**
+ * 控制设备
+ * 发送控制命令到API并处理响应
+ * @param {string} action - 要执行的操作 ('on', 'off', 'reboot')
+ */
 async function controlDevice(action) {
     const key = document.getElementById('keyInput').value;
     if (!key) {
@@ -122,7 +167,12 @@ async function controlDevice(action) {
     }
 }
 
-// 获取操作名称
+/**
+ * 获取操作名称
+ * 将操作代码转换为中文名称
+ * @param {string} action - 操作代码
+ * @returns {string} 操作的中文名称
+ */
 function getActionName(action) {
     const actions = {
         'on': '开启设备',
@@ -131,6 +181,15 @@ function getActionName(action) {
         'compulsion': '强制关闭',
     };
     return actions[action] || action;
+}
+
+/**
+ * 强制关闭确认
+ * 需要另外的CSS文件支持
+ */
+function confirmHardShutdown() {
+    // 强制关闭功能在另外的CSS文件中实现
+    console.log('强制关闭功能需要另外的CSS文件支持');
 }
 
 // 页面加载时获取初始状态
