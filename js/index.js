@@ -1,57 +1,19 @@
-/**
- * IoT设备控制台JavaScript功能
- * 包含设备状态获取、设备控制和弹窗动画功能
- * 每个弹窗都有独立的动画控制，互不干扰
- */
-
 // 基础URL - 根据实际部署情况可能需要调整
-const BASE_URL = 'https://api-iot.datao2233.top';
+const BASE_URL = 'https://api-iot.datao2233.top'; // 如果与Worker同一域名，可以留空
 
-/**
- * 显示提示信息 - 独立弹窗版本
- * 每个弹窗都有独立的定时器，互不干扰
- * @param {string} message - 要显示的消息内容
- * @param {string} type - 弹窗类型 ('success' 或 'error')
- */
+// 显示提示信息
 function showAlert(message, type) {
     const alert = document.getElementById(type + 'Alert');
-    
-    // 先停止所有正在进行的动画
-    alert.classList.remove('show', 'hide');
-    
-    // 设置消息内容
     alert.textContent = message;
-    
-    // 强制重排以触发动画
-    void alert.offsetWidth;
-    
-    // 显示并添加动画类
     alert.style.display = 'block';
-    alert.classList.add('show');
     
-    // 为当前弹窗设置独立的定时器
-    if (alert.timeoutId) {
-        clearTimeout(alert.timeoutId);
-    }
-    
-    // 5秒后自动隐藏当前弹窗
-    alert.timeoutId = setTimeout(() => {
-        alert.classList.remove('show');
-        alert.classList.add('hide');
-        
-        // 动画完成后完全隐藏当前弹窗
-        setTimeout(() => {
-            alert.style.display = 'none';
-            alert.classList.remove('hide');
-            alert.timeoutId = null;
-        }, 500);
-    }, 4500);
+    // 5秒后自动隐藏
+    setTimeout(() => {
+        alert.style.display = 'none';
+    }, 5000);
 }
 
-/**
- * 更新连接状态显示
- * @param {boolean} online - 设备是否在线
- */
+// 更新连接状态显示
 function updateConnectionStatus(online) {
     const connectionIndicator = document.getElementById('connectionIndicator');
     const connectionText = document.getElementById('connectionText');
@@ -67,10 +29,7 @@ function updateConnectionStatus(online) {
     }
 }
 
-/**
- * 获取设备状态
- * 从API获取设备状态并更新界面显示
- */
+// 获取设备状态
 async function getStatus() {
     const statusBtn = document.querySelector('.btn-primary');
     const originalText = statusBtn.innerHTML;
@@ -80,11 +39,6 @@ async function getStatus() {
         statusBtn.disabled = true;
         
         const response = await fetch(`${BASE_URL}/?action=status`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态码: ${response.status}`);
-        }
-        
         const data = await response.json();
         
         if (data && typeof data.online !== 'undefined') {
@@ -96,6 +50,7 @@ async function getStatus() {
             onlineStatus.className = data.online ? 'status-value online' : 'status-value offline';
             
             // 根据API响应格式更新电源状态
+            // 注意：power字段是字符串"on"或"off"，不是布尔值
             if (!data.online) {
                 // 设备离线时，电源状态显示为未知
                 powerStatus.textContent = '未知';
@@ -131,11 +86,7 @@ async function getStatus() {
     }
 }
 
-/**
- * 控制设备
- * 发送控制命令到API并处理响应
- * @param {string} action - 要执行的操作 ('on', 'off', 'reboot', 'compulsion')
- */
+// 控制设备
 async function controlDevice(action) {
     const key = document.getElementById('keyInput').value;
     if (!key) {
@@ -152,11 +103,6 @@ async function controlDevice(action) {
         const md5Key = md5(key);
         
         const response = await fetch(`${BASE_URL}/?action=${action}&key=${encodeURIComponent(md5Key)}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP错误! 状态码: ${response.status}`);
-        }
-        
         const data = await response.json();
         
         if (data.msg === 'OK') {
@@ -176,12 +122,7 @@ async function controlDevice(action) {
     }
 }
 
-/**
- * 获取操作名称
- * 将操作代码转换为中文名称
- * @param {string} action - 操作代码
- * @returns {string} 操作的中文名称
- */
+// 获取操作名称
 function getActionName(action) {
     const actions = {
         'on': '开启设备',
