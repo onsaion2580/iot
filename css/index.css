@@ -1,4 +1,4 @@
-        * {
+* {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -19,7 +19,6 @@
         
         header {
             text-align: center;
-            padding: 20px 0;
             margin-bottom: 30px;
         }
         
@@ -196,23 +195,55 @@
             to { transform: rotate(360deg); }
         }
         
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .alert-success {
-            background: rgb(59 207 65);
-            border: 1px solid #28a745;
-        }
-        
-        .alert-error {
-            background: rgb(203 47 47);
-            border: 1px solid #dc3545;
-        }
-        
+        /* 提示框动画样式（已修改） */
+/* 弹窗容器：固定高度，最多显示2个弹窗（按弹窗高度+间距计算） */
+.alert-container {
+    position: fixed;
+    top: 120px; /* 控制台文字下方位置 */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 90%;
+    max-width: 800px;
+    max-height: 140px; /* 2个弹窗高度（60px*2）+ 1个间距（10px）= 130px，留10px缓冲 */
+    overflow: hidden; /* 超出高度隐藏（配合JS控制数量，实际不会触发） */
+}
+
+/* 单个弹窗样式不变 */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px; /* 弹窗间间距 */
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    min-height: 60px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.alert.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.alert.hide {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* 成功/错误弹窗样式不变 */
+.alert-success {
+    background: rgb(59 207 65);
+    border: 1px solid #28a745;
+    color: #fff;
+}
+.alert-error {
+    background: rgb(203 47 47);
+    border: 1px solid #dc3545;
+    color: #fff;
+}
         .key-input {
             width: 100%;
             padding: 12px;
@@ -279,3 +310,33 @@
                 font-size: 2rem;
             }
         }
+/* 保留原有msg-feedback样式（若无需可删除，不影响alert动画） */
+.msg-feedback {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    z-index: 9999;
+    opacity: 0;
+    transform: translate(-50%, -20px) scale(0.95);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.msg-feedback.success {
+    background-color: #4CAF50;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.msg-feedback.error {
+    background-color: #F44336;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.msg-feedback.show {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+}
