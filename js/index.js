@@ -5,7 +5,7 @@
  */
 
 // 基础URL - 根据实际部署情况可能需要调整
-const BASE_URL = 'https://api-iot.datao2233.top'; // 如果与Worker同一域名，可以留空
+const BASE_URL = 'https://api-iot.datao2233.top';
 
 /**
  * 显示提示信息 - 独立弹窗版本
@@ -80,6 +80,11 @@ async function getStatus() {
         statusBtn.disabled = true;
         
         const response = await fetch(`${BASE_URL}/?action=status`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP错误! 状态码: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data && typeof data.online !== 'undefined') {
@@ -91,7 +96,6 @@ async function getStatus() {
             onlineStatus.className = data.online ? 'status-value online' : 'status-value offline';
             
             // 根据API响应格式更新电源状态
-            // 注意：power字段是字符串"on"或"off"，不是布尔值
             if (!data.online) {
                 // 设备离线时，电源状态显示为未知
                 powerStatus.textContent = '未知';
@@ -130,7 +134,7 @@ async function getStatus() {
 /**
  * 控制设备
  * 发送控制命令到API并处理响应
- * @param {string} action - 要执行的操作 ('on', 'off', 'reboot')
+ * @param {string} action - 要执行的操作 ('on', 'off', 'reboot', 'compulsion')
  */
 async function controlDevice(action) {
     const key = document.getElementById('keyInput').value;
@@ -148,6 +152,11 @@ async function controlDevice(action) {
         const md5Key = md5(key);
         
         const response = await fetch(`${BASE_URL}/?action=${action}&key=${encodeURIComponent(md5Key)}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP错误! 状态码: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.msg === 'OK') {
@@ -181,15 +190,6 @@ function getActionName(action) {
         'compulsion': '强制关闭',
     };
     return actions[action] || action;
-}
-
-/**
- * 强制关闭确认
- * 需要另外的CSS文件支持
- */
-function confirmHardShutdown() {
-    // 强制关闭功能在另外的CSS文件中实现
-    console.log('强制关闭功能需要另外的CSS文件支持');
 }
 
 // 页面加载时获取初始状态
