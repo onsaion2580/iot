@@ -33,9 +33,24 @@
                     <i class="fas fa-info-circle"></i>
                     <h2>设备状态</h2>
                 </div>
+                
+                <!-- 新增设备选择器，使用status-item样式 -->
+                <div class="status-item">
+                    <span class="status-label">选择设备:</span>
+                    <span class="status-value">
+                        <select id="deviceSelector" class="device-select">
+                            <option value="device1">主设备 #001</option>
+                            <option value="device2">副设备 #002</option>
+                        </select>
+                    </span>
+                </div>
+                
+                <!-- 在线状态 -->
                 <div class="status-item">
                     <span class="status-label">在线状态:</span>
-                    <span class="status-value" id="onlineStatus">检查中...</span>
+                    <span class="status-value" id="onlineStatus">
+                        <span class="status-indicator status" id="connectionIndicator" title="检查中..."></span>
+                    </span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">电源状态:</span>
@@ -44,10 +59,6 @@
                 <div class="status-item">
                     <span class="status-label">最后更新:</span>
                     <span class="status-value" id="lastUpdate">-</span>
-                </div>
-                <div class="connection-status">
-                    <div class="status-indicator status" id="connectionIndicator"></div>
-                    <span id="connectionText">尝试连接设备...</span>
                 </div>
                 <br>
                 <button class="btn btn-primary" onclick="getStatus()">
@@ -71,7 +82,7 @@
                     <button class="btn btn-warning" onclick="controlDevice('reboot')">
                         <i class="fas fa-redo"></i> 重启设备
                     </button>
-                    <button class="btn btn-compulsion" onclick="confirmHardShutdown()">
+                    <button class="btn btn-compulsion" onclick="controlDevice('compulsion')">
                         <i class="fas fa-exclamation-triangle"></i> 强制关闭
                     </button>
                 </div>
